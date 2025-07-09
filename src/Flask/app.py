@@ -45,7 +45,7 @@ app.secret_key = os.urandom(24)
 
 # --- 全局配置 ---
 DIFY_API_URL = "https://api.dify.ai/v1/chat-messages"
-DIFY_API_KEY = os.getenv("DIFY_API_KEY", "app-HNvHtsBE4IelskEEq6xRZmSS")
+DIFY_API_KEY = os.getenv("DIFY_API_KEY", "")
 TIME_THRESHOLDS = {1: 8, 2: 15, 3: 25, 4: 40, 5: 60}
 
 
