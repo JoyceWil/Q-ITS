@@ -6,7 +6,7 @@ from datetime import datetime
 from cqlib import TianYanPlatform, Circuit
 
 # 配置项
-LOGIN_KEY = os.getenv("TIANYAN_LOGIN_KEY", "ZLtYHPb+oUsitQ494e+s0ke6JDEeOQ+Ihwn1h/GiX3M=")
+LOGIN_KEY = os.getenv("TIANYAN_LOGIN_KEY", "")
 MACHINE_NAME = "tianyan_sw"
 NUM_SHOTS = 2048
 
