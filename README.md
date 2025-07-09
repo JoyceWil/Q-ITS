@@ -11,9 +11,10 @@ pip install -r requirements.txt
 ```
 
 ```aiignore
+
 # Setting of Dify Platform
 DIFY_API_URL = "https://api.dify.ai/v1/chat-messages"
-DIFY_API_KEY = "app-HNvHtsBE4IelskEEq6xRZmSS" 
+DIFY_API_KEY = "" 
 ```
 
 ```sh
