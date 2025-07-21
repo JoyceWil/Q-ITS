@@ -1,0 +1,86 @@
+[
+  {
+    "correct_answer": "A",
+    "difficulty": 1,
+    "explanation": "《离骚》是中国战国时期楚国诗人屈原所作，是古代诗歌中的经典之作，主要表达了作者的政治理想和个人情感。选项B、C和D均为其他著名诗人的作品，与《离骚》无关，因此是错误的。",
+    "feature_3d": {
+      "correctness": 1,
+      "difficulty": 1,
+      "performance_code": "11"
+    },
+    "is_correct": true,
+    "options": {
+      "A": "屈原",
+      "B": "李白",
+      "C": "杜甫",
+      "D": "白居易"
+    },
+    "question_num": 1,
+    "question_text": "《离骚》的作者是谁？",
+    "time_taken": 2.01,
+    "user_answer": "A"
+  },
+  {
+    "correct_answer": "A",
+    "difficulty": 2,
+    "explanation": "《离骚》是屈原的代表作，主要表达了他对理想的追求与对现实的失望。诗中屈原通过自身的遭遇，反映了对政治腐败的控诉和对理想的坚持。选项B、C和D虽然可能在诗中有所体现，但并不是《离骚》的主要主题。",
+    "feature_3d": {
+      "correctness": 1,
+      "difficulty": 2,
+      "performance_code": "11"
+    },
+    "is_correct": true,
+    "options": {
+      "A": "对个人理想的追求与失落。",
+      "B": "对历史事件的叙述。",
+      "C": "对自然景观的描写。",
+      "D": "对爱情的歌颂。"
+    },
+    "question_num": 2,
+    "question_text": "《离骚》中的主要主题是什么？",
+    "time_taken": 3.17,
+    "user_answer": "A"
+  },
+  {
+    "correct_answer": "A",
+    "difficulty": 2,
+    "explanation": "《离骚》是屈原表达其对国家和人民深切关怀与忧虑的诗作。屈原在诗中抒发了他对祖国的热爱以及对国家命运的深深忧虑，体现了他作为一位忠臣的情怀。选项B虽然反映了个人情感，但并不是《离骚》的主要情感；选项C和D则与《离骚》的主题无关，因此不正确。",
+    "feature_3d": {
+      "correctness": 1,
+      "difficulty": 2,
+      "performance_code": "11"
+    },
+    "is_correct": true,
+    "options": {
+      "A": "对国家和人民深切的关怀与忧虑。",
+      "B": "对个人名誉和地位的渴望。",
+      "C": "对自然景色的赞美与欣赏。",
+      "D": "对友情的珍视与怀念。"
+    },
+    "question_num": 3,
+    "question_text": "《离骚》中，屈原表达了哪种主要的情感？",
+    "time_taken": 2.38,
+    "user_answer": "A"
+  },
+  {
+    "correct_answer": "A",
+    "difficulty": 2,
+    "explanation": "《离骚》是屈原的代表作，主要表达了他对楚国的忠诚以及在政治上遭遇的不幸与忧虑。屈原通过对自己理想的追求和对国家前途的担忧，展现了他深厚的爱国情感。选项B虽涉及情感，但不是《离骚》的主要主题；选项C和D虽然也有一定的表现，但没有准确抓住屈原在《离骚》中最核心的情感表达。",
+    "feature_3d": {
+      "difficulty": 2,
+      "correctness": 1,
+      "performance_code": "11"
+    },
+    "is_correct": true,
+    "options": {
+      "A": "对国家的忠诚与忧虑。",
+      "B": "对爱情的渴望与失落。",
+      "C": "对自然美的赞美与欣赏。",
+      "D": "对个人命运的无奈与悲伤。"
+    },
+    "question_num": 4,
+    "question_text": "《离骚》中，屈原主要表达了哪种情感？",
+    "time_taken": 2.88,
+    "user_answer": "A"
+  }
+]
