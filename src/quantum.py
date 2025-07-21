@@ -6,7 +6,6 @@ import json
 from datetime import datetime
 
 try:
-    # <<< MODIFIED: 导入 config 文件
     import config
     from cqlib import TianYanPlatform, Circuit
 except ImportError:
@@ -31,12 +30,6 @@ except ImportError:
 
     config = MockConfig()
 
-
-# --- 配置项 (已从 config.py 导入，无需在此处定义) ---
-
-# ==============================================================================
-# 掌握度评估函数 (无变化)
-# ==============================================================================
 def get_mastery_feedback(score):
     if score >= 0.85: return {"level": "大师精通", "comment": "表现卓越！您已完全掌握了这部分知识。",
                               "suggestion": "太棒了！试试挑战一些更深或更广的难题吧！"}
@@ -44,13 +37,9 @@ def get_mastery_feedback(score):
                               "suggestion": "保持状态，建议再练习几次来彻底巩固。"}
     if score >= 0.20: return {"level": "基础学习", "comment": "有了一个不错的开始，但基础还需加强。",
                               "suggestion": "您的基础还比较薄弱。建议回顾知识点，多做几轮练习。"}
-    return {"level": "知识萌芽", "comment": "看起来您对这部分知识还不太熟悉。",
-            "suggestion": "没关系，先仔细学习相关的知识点，弄懂概念后再来尝试。"}
+    return {"level": "知识萌芽", "comment": "看起来您已经掌握了部分知识。",
+            "suggestion": "再接再励，先仔细学习相关的知识点，弄懂概念后再来尝试。"}
 
-
-# ==============================================================================
-# 核心计算函数 (使用 config 中的配置)
-# ==============================================================================
 def calculate_mastery_from_log(session_data):
     print(f"\n--- [{datetime.now()}] Quantum Analyzer: 开始处理会话数据 ---")
     if not session_data:
@@ -106,12 +95,11 @@ def calculate_mastery_from_log(session_data):
 
     try:
         print(f"--- Quantum Analyzer: 正在连接天衍平台并提交任务至模拟器 '{config.TIANYAN_MACHINE_NAME}'...")
-        # <<< MODIFIED: 使用 config 中的变量
         platform = TianYanPlatform(login_key=config.TIANYAN_LOGIN_KEY, machine_name=config.TIANYAN_MACHINE_NAME)
         query_id = platform.submit_experiment(q_circuit.qcis, num_shots=config.TIANYAN_NUM_SHOTS)
         print(f"  - 任务提交成功, Query ID: {query_id}")
         data = platform.query_experiment(query_id)
-        print(f"--- Quantum Analyzer: 从平台接收到的原始数据:\n{json.dumps(data, indent=2, ensure_ascii=False)}")
+        # print(f"--- Quantum Analyzer: 从平台接收到的原始数据:\n{json.dumps(data, indent=2, ensure_ascii=False)}")
 
         if not data or 'probability' not in data[0]:
             raise ValueError("从平台查询到的任务结果为空或格式不正确。")
@@ -131,9 +119,25 @@ def calculate_mastery_from_log(session_data):
                                            "suggestion": f"请检查后台日志。错误摘要: {str(e)}"}}
 
 
-# ==============================================================================
-# 独立测试代码 (无变化)
-# ==============================================================================
 if __name__ == '__main__':
-    # ... (测试代码保持不变) ...
+    print("--- 正在以独立模式运行 quantum.py 进行测试 ---")
+    test_log_data = [
+        {"correct_answer": "A", "difficulty": 3, "explanation": "...",
+         "feature_3d": {"correctness": 1, "difficulty": 3, "performance_code": "11"}, "is_correct": True, "options": {},
+         "question_num": 1, "question_text": "...", "time_taken": 4.61, "user_answer": "A"},
+        {"correct_answer": "A", "difficulty": 2, "explanation": "...",
+         "feature_3d": {"correctness": 1, "difficulty": 2, "performance_code": "11"}, "is_correct": True, "options": {},
+         "question_num": 2, "question_text": "...", "time_taken": 3.8, "user_answer": "A"},
+        {"correct_answer": "A", "difficulty": 1, "explanation": "...",
+         "feature_3d": {"correctness": 1, "difficulty": 1, "performance_code": "11"}, "is_correct": True, "options": {},
+         "question_num": 3, "question_text": "...", "time_taken": 1.32, "user_answer": "A"},
+        {"correct_answer": "C", "difficulty": 1, "explanation": "...",
+         "feature_3d": {"difficulty": 1, "correctness": 1, "performance_code": "11"}, "is_correct": True, "options": {},
+         "question_num": 4, "question_text": "...", "time_taken": 2.91, "user_answer": "C"}
+    ]
+
+    final_score = calculate_mastery_from_log(test_log_data)
+
+    print("\n--- 测试完成 ---")
+    print(f"最终计算出的掌握度分数为: {final_score}")
     pass

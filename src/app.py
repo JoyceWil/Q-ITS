@@ -7,15 +7,12 @@ import re
 from datetime import datetime
 import sys
 
-# --- 路径和模块导入 ---
 try:
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    # 假设 config.py, quantum.py 和 app.py 在同一目录
     if current_dir not in sys.path:
         sys.path.insert(0, current_dir)
         print(f"已将 '{current_dir}' 添加到系统路径")
 
-    # <<< MODIFIED: 导入 config 文件
     import config
     from quantum import calculate_mastery_from_log
 
@@ -25,7 +22,6 @@ except ImportError as e:
     print(f"致命错误：无法导入核心模块: {e}")
 
 
-    # 如果模块导入失败，定义一个兜底函数
     def calculate_mastery_from_log(data):
         return {"score": 0.0,
                 "feedback": {"level": "错误", "comment": "量子模块加载失败", "suggestion": f"请检查后台服务日志: {e}"}}
@@ -38,33 +34,28 @@ except ImportError as e:
 
     config = MockConfig()
 
-# --- 路径设置 ---
 project_root = os.path.dirname(current_dir)
 template_dir = os.path.join(current_dir, 'templates')
 LOGS_DIR = os.path.join(project_root, "logs")
 print(f"模板文件夹: {template_dir}")
 print(f"日志文件夹: {LOGS_DIR}")
 
-# --- Flask 应用初始化 ---
+
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = os.urandom(24)
 
-# --- 全局配置 (已移至 config.py) ---
 TIME_THRESHOLDS = {1: 8, 2: 15, 3: 25, 4: 40, 5: 60}
 
 
-# <<< MODIFIED: 修正了 Dify API 调用函数
 def get_dify_response(topic, user_id, conversation_id=None):
     """
-    调用 Dify API 获取题目。
-    修正了 payload 结构，将 topic 放入 inputs 中，这是导致 400 错误的主要原因。
+    调用 Dify API 获取题目
     """
     headers = {
         "Authorization": f"Bearer {config.DIFY_API_KEY}",
         "Content-Type": "application/json"
     }
 
-    # 这是正确的 payload 结构，topic 应该作为 input 变量传递
     payload = {
         "inputs": {"topic": topic},
         "query": f"请围绕 {topic} 这个主题，生成一道相关的单项选择题。",
@@ -78,7 +69,7 @@ def get_dify_response(topic, user_id, conversation_id=None):
 
     try:
         response = requests.post(config.DIFY_API_URL, headers=headers, json=payload, timeout=120)
-        response.raise_for_status()  # 如果请求失败 (如 400, 500), 这会抛出异常
+        response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
         print(f"!!! Dify API 调用失败: {e}")
@@ -88,7 +79,6 @@ def get_dify_response(topic, user_id, conversation_id=None):
         return None
 
 
-# --- 其余辅助函数 (无重大修改) ---
 def clean_and_parse_json(raw_string):
     if not isinstance(raw_string, str): return None
     match = re.search(r'\{.*\}', raw_string, re.DOTALL)
@@ -120,7 +110,6 @@ def calculate_3d_feature(difficulty, is_correct, time_taken):
     return {"difficulty": difficulty, "correctness": 1 if is_correct else 0, "performance_code": performance_code}
 
 
-# --- Flask 路由 (无重大修改) ---
 @app.route('/')
 def index():
     print("访问主页 /，清理旧会话。")
@@ -130,26 +119,45 @@ def index():
 
 @app.route('/generate-question', methods=['POST'])
 def generate_question():
+    """
+    智能处理题目生成请求：
+    1. 如果是新主题，则创建全新会话。
+    2. 如果是“继续强化”，则清空旧的答题记录，保留主题开始新一轮。
+    """
     print("收到请求 /generate-question")
     data = request.get_json()
     topic = data.get('topic')
-    user_id = "q-its-user-01"  # 使用固定用户ID
+    is_strengthening = data.get('is_strengthening', False)  # 从前端获取强化标志
 
-    if 'log_filename' not in session:
+    # 场景1：这是一个“继续强化”的请求
+    if is_strengthening and 'session_data' in session:
+        print(f"识别为“继续强化”请求，主题: {session.get('topic')}")
+        # 重置答题记录，但保留主题和会话ID
+        session['session_data']['session_log'] = []
+        session['session_data']['quantum_analysis'] = None
+        session['start_time'] = time.time()
+        print("会话日志已重置，准备开始强化学习。")
+
+    # 场景2：这是一个全新的测试（或者会话丢失了）
+    # 通过检查 log_filename 或 topic 是否匹配来判断
+    elif 'log_filename' not in session or session.get('topic') != topic:
+        print(f"识别为新主题测试: {topic}。正在创建全新会话。")
+        session.clear()  # 开始一个新主题前，先清理旧会话
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         session['log_filename'] = f"session_{now}.json"
         session['session_data'] = {"topic": topic, "session_log": [], "quantum_analysis": None}
         session['topic'] = topic
-        session['conversation_id'] = None  # 初始化 conversation_id
+        session['conversation_id'] = None  # 新会话没有对话ID
 
-    # <<< MODIFIED: 传入 conversation_id
+    # 从这里开始，逻辑和之前类似，但现在会话状态是正确的
+    user_id = "q-its-user-01"
     dify_response = get_dify_response(session['topic'], user_id, session.get('conversation_id'))
 
     if not dify_response:
         return jsonify({"error": "从 Dify 服务获取数据失败, 请检查后端日志"}), 500
 
     raw_answer = dify_response.get('answer', '')
-    session['conversation_id'] = dify_response.get('conversation_id')  # 保存新的 conversation_id
+    session['conversation_id'] = dify_response.get('conversation_id')
 
     question_package = clean_and_parse_json(raw_answer)
     if not question_package or 'difficulty' not in question_package:
@@ -164,13 +172,37 @@ def generate_question():
     }
 
     session['session_data']['session_log'].append(session_entry)
-    session['start_time'] = time.time()
+    session['start_time'] = time.time()  # 每次出题都重置计时器
     session.modified = True
     write_log(session['log_filename'], session['session_data'])
     return jsonify({"question_text": session_entry["question_text"], "options": session_entry["options"]})
 
 
-# submit-answer, end-session, get-quantum-analysis 路由与之前版本相同，无需修改
+@app.route('/get-quantum-analysis', methods=['POST'])
+def get_quantum_analysis():
+    """接收答题数据，进行量子计算，但不再清除会话"""
+    print("收到请求 /get-quantum-analysis")
+
+    if 'session_data' not in session or 'log_filename' not in session:
+        return jsonify({"error": "无法找到会话信息以记录量子分析结果"}), 400
+
+    session_log_from_frontend = request.get_json()
+    if not session_log_from_frontend:
+        return jsonify({"error": "未提供用于分析的数据"}), 400
+
+    quantum_result = calculate_mastery_from_log(session_log_from_frontend)
+    session['session_data']['quantum_analysis'] = quantum_result
+
+    print(f"正在将量子分析结果写入日志文件: {session['log_filename']}")
+    write_log(session['log_filename'], session['session_data'])
+
+    # <<< CRITICAL CHANGE: The session.clear() line is REMOVED from here >>>
+    # session.clear() # <--- DO NOT CLEAR THE SESSION HERE
+
+    print("量子计算和日志记录完成，会话将保留用于后续操作。")
+    return jsonify(quantum_result)
+
+
 @app.route('/submit-answer', methods=['POST'])
 def submit_answer():
     print("收到请求 /submit-answer")
@@ -197,24 +229,6 @@ def end_session():
     if 'session_data' not in session: return jsonify({"error": "会话已过期或无数据"}), 400
     return jsonify(session.get('session_data', {}).get('session_log', []))
 
-
-@app.route('/get-quantum-analysis', methods=['POST'])
-def get_quantum_analysis():
-    print("收到请求 /get-quantum-analysis")
-    if 'session_data' not in session: return jsonify({"error": "无法找到会话信息"}), 400
-    session_log = request.get_json()
-    if not session_log: return jsonify({"error": "未提供用于分析的数据"}), 400
-
-    quantum_result = calculate_mastery_from_log(session_log)
-    session['session_data']['quantum_analysis'] = quantum_result
-    write_log(session['log_filename'], session['session_data'])
-
-    session.clear()
-    print("量子计算和日志记录完成，会话已清理。")
-    return jsonify(quantum_result)
-
-
-# --- 应用启动 ---
 if __name__ == '__main__':
     print("Flask 应用启动...")
     # 检查 Dify API Key 是否已配置
