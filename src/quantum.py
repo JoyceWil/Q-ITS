@@ -6,10 +6,25 @@ import json
 from datetime import datetime
 
 try:
-    import config
+    import cqlib
     from cqlib import TianYanPlatform, Circuit
+    print("--- [quantum.py] cqlib 导入成功 ---")
 except ImportError:
-    print("错误：cqlib 库或 config 文件未安装或未找到。")
+    print("!!! [quantum.py] 致命错误: cqlib 库未能导入。")
+    # 定义一个假的 Circuit 类以防止程序立即因 NameError 崩溃
+    class Circuit:
+        def __init__(self, *args, **kwargs): pass
+        def h(self, *args, **kwargs): pass
+        def ry(self, *args, **kwargs): pass
+        def cz(self, *args, **kwargs): pass
+        def measure(self, *args, **kwargs): pass
+        def execute(self, *args, **kwargs): return type('obj', (object,), {'result': [[]]})()
+
+try:
+    import config
+    print("--- [quantum.py] config.py 导入成功 ---")
+except ImportError:
+    print("!!! [quantum.py] 致命错误: config.py 未能导入。")
 
 
     class TianYanPlatform:
